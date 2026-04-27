@@ -187,7 +187,7 @@ def panel_two_views(ax: plt.Axes, q_max: int) -> None:
     diag = np.linspace(0, 1.05, 50)
     ax.plot(diag, diag, "k--", alpha=0.4, linewidth=0.8, label="y = x")
 
-    ax.set_xlabel("lambda(q) / (q - 1)   [exponent richness]")
+    ax.set_xlabel("lambda(q) / (q - 1)")
     ax.set_ylabel("1 / C(q)   [cyclic fraction]")
     ax.set_title("Two collapse measures, side by side")
     ax.set_xlim(-0.02, 1.05)

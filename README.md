@@ -36,6 +36,11 @@ The core multiplicative law that organizes the rest of the repo is the
 C(k * p) = C(k) * gcd(lambda(k), p - 1)        for prime p with p not dividing k
 ```
 
+The companion statistical result (Theorem C) is the Dirichlet-density
+identity `Pr(l | gcd(p - 1, q - 1)) -> 1/(l - 1)^2` for random odd primes,
+which is what makes the small primes 2 and 3 dominate cycle overlaps in
+practice.
+
 For derivations, worked examples, and a connection to every figure here,
 see [`THEOREM.md`](./THEOREM.md). A renderable PDF can be produced via
 `render_theorem.ps1` (requires pandoc plus a LaTeX engine).
@@ -113,6 +118,19 @@ python propagation.py
 # -> propagation.png
 ```
 
+### Distribution of `gcd(p-1, q-1)` (`gcd_distribution_theory.py`)
+
+Empirical verification of Theorem C. Computes the divisibility rate
+`Pr(l | gcd(p-1, q-1))` over all distinct odd-prime pairs up to a
+configurable cutoff and compares it to the Dirichlet prediction
+`1/(l-1)^2`. Also prints the empirical mean gcd alongside the
+asymptotic estimate `A log X` with `A = 315 zeta(3) / (2 pi^4) ~ 1.94`.
+
+```bash
+python gcd_distribution_theory.py
+# -> gcd_distribution.png
+```
+
 ### PDF of the theorem note (`render_theorem.ps1`)
 
 ```powershell
@@ -181,10 +199,10 @@ identity at runtime, so they double as tests for the theorem in
 | `order_distributions.py`   | Element-order histograms inside chosen `n`              |
 | `wedge_envelopes.py`       | Algebraic envelope visualization                        |
 | `propagation.py`           | Iterative demo of the collapse propagation theorem      |
-| `THEOREM.md`               | Wedge + collapse propagation identities, with proofs    |
+| `gcd_distribution_theory.py` | Empirical verification of Theorem C                   |
+| `THEOREM.md`               | Wedge, propagation, and Dirichlet-density identities    |
 | `render_theorem.ps1`       | Pandoc helper that renders `THEOREM.md` to `theorem.pdf`|
 | `requirements.txt`         | `matplotlib` (pulls in numpy)                           |
-| `lambda_ratio_scan_*.csv`  | Sample CSV outputs from earlier scanner runs            |
 
 ## Notes
 

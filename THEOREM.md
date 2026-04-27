@@ -168,7 +168,70 @@ The clean shape is $253$: the two primes' totients share only the inevitable
 factor of $2$. The overlapping shape is $91$: the totients share both 2 and 3,
 giving a threefold-larger collapse.
 
-## 6. Cryptographic interpretation
+## 6. Distribution of collapse for semiprimes
+
+Theorems 1 and 2 are exact identities. The next question is *how big*
+$C(pq)$ tends to be when $p, q$ are random primes. The answer is governed
+by Dirichlet's theorem on primes in arithmetic progressions.
+
+**Theorem C (Dirichlet density of $\gcd(p-1, q-1)$).** Let $p, q$ be
+distinct odd primes drawn uniformly from primes $\le X$, and let $\ell$
+be a prime. Then
+
+$$
+\Pr\!\bigl(\ell \mid \gcd(p - 1,\; q - 1)\bigr) \;\xrightarrow[X \to \infty]{}\; \frac{1}{(\ell - 1)^2}.
+$$
+
+The case $\ell = 2$ is trivial: every odd prime $p$ has $p - 1$ even, so
+the probability is $1$ (and the formula gives $1/(2-1)^2 = 1$ as a
+boundary value).
+
+**Justification.** By Dirichlet's theorem, for any prime $\ell$ the primes
+$p$ with $p \equiv 1 \pmod{\ell}$ have natural density $1/(\ell - 1)$
+among all primes. The two prime draws are asymptotically independent, so
+the joint event $\ell \mid (p - 1)$ and $\ell \mid (q - 1)$ has density
+$1/(\ell - 1)^2$. The same argument with prime powers $\ell^k$ gives
+$\Pr(\ell^k \mid \gcd) \to 1/\bigl(\ell^{k-1}(\ell - 1)\bigr)^2$ (for $\ell$ odd).
+
+**Corollary (asymptotic expectation).** Using the divisor identity
+$\gcd(a, b) = \sum_{d \ge 1} \varphi(d) \, [d \mid a]\,[d \mid b]$ together
+with the Dirichlet rate $\Pr(d \mid p - 1) \to 1/\varphi(d)$,
+
+$$
+\mathbb{E}\bigl[\gcd(p - 1,\; q - 1)\bigr] \;\approx\; \sum_{d \le X} \frac{1}{\varphi(d)} \;\sim\; A \, \log X,
+$$
+
+where $A = \dfrac{315\,\zeta(3)}{2\pi^4} \approx 1.9436$ is the standard
+mean-totient-reciprocal constant. The expectation is unbounded but grows
+only logarithmically with the prime cutoff. The dominant terms come from
+small primes: $d = 1, 2, 3, 4, 6$ alone contribute well over half of the
+sum at any $X$, which is why the *shape* of Theorem C, not just its
+asymptotic, is dominated by $\ell \in \{2, 3\}$.
+
+**Mechanism of the divergence.** The growth of the sum is not driven by
+any single dominant divisor: $\sum_{d \le X} 1/\varphi(d) \sim A \log X$
+accumulates slowly because integers with small totients (those with many
+small prime factors) become rare, but they remain frequent enough at
+every scale to keep the partial sum unbounded. The divergence arises
+from the slow density of integers with small totients, not from any
+single dominant divisor.
+
+**Why $1365 = 3 \cdot 5 \cdot 7 \cdot 13$ is at the top.** Theorem C
+predicts that the most-collapsed semiprimes are products of *small*
+primes whose $(p_i - 1)$ values share heavy small-prime factors. For
+$1365$, the four primes $3, 5, 7, 13$ contribute totients $2, 4, 6, 12$,
+all rich in factors of $2$ and $3$. Each step of the propagation trace
+in §5.1 picks up the maximum possible $\gcd$ at that step. Theorem C is
+the statistical version of the same statement: if you sample primes
+uniformly, the expected gcd is dominated by exactly the kinds of small
+shared structure that $1365$ exhibits in concentrated form.
+
+The empirical verification of Theorem C, including a divisibility-rate
+table for $\ell \in \{2, 3, 5, 7, 11, 13, 17, 19, 23\}$, is in
+`gcd_distribution_theory.py`. The script prints empirical vs predicted
+rates side by side and writes `gcd_distribution.png`.
+
+## 7. Cryptographic interpretation
 
 For RSA, the modulus $n = pq$ is chosen with $p, q$ large distinct primes.
 The decryption exponent $d$ must satisfy $ed \equiv 1 \pmod{\lambda(n)}$
@@ -190,7 +253,32 @@ The heatmap panel of `group_structure.png` is exactly this map. Bright
 cells are pairs $(p, q)$ with high $\gcd(p - 1, q - 1)$; dark cells are
 the cryptographically clean pairs.
 
-## 7. Connection to the figures in this repository
+## 8. Why this matters
+
+The three theorems are not independent observations. They are the same
+multiplicative law shown at three scales:
+
+- **RSA parameter hygiene.** Safe-prime selection is the operational
+  version of "minimize $\gcd(\lambda(k), p - 1)$ at the moment of joining."
+  Theorem 2 is the algebraic statement of that goal; Theorem C explains
+  why the goal is hard: although most pairs of primes share only small
+  factors ($2$, $3$, $5$), the cumulative effect of all possible shared
+  divisors causes the expected value of $\gcd(p - 1, q - 1)$ to grow
+  logarithmically with prime size. Safe-prime selection prevents this
+  accumulation by structurally restricting the divisor lattice, forcing
+  the gcd into $\{1, 2\}$ regardless of $X$.
+- **Carmichael behavior.** Carmichael numbers are the extreme case of
+  the same shared-structure phenomenon. The condition
+  $\lambda(n) \mid n - 1$ requires precisely the kind of heavy
+  $\gcd$-overlap that maximizes $C(n)$. Korselt's criterion is a
+  consequence; the gcd story is the cause.
+- **Visual intuition.** The wedge envelopes (`wedge_envelopes.png`),
+  the collapse bands (`group_structure.png`), the element-order
+  histograms (`order_distributions.png`), and the propagation steps
+  (`propagation.png`, `gcd_distribution.png`) are all the same law
+  rendered at different scales. Once you see one, you see them all.
+
+## 9. Connection to the figures in this repository
 
 | File                       | What it shows                                                                  |
 | -------------------------- | ------------------------------------------------------------------------------ |
@@ -198,20 +286,24 @@ the cryptographically clean pairs.
 | `group_structure.png`      | Distribution of $C(q)$, the gcd-heatmap, and Carmichael overlays.              |
 | `order_distributions.png`  | The parallel-cycle picture inside specific $n$, with explicit invariant factors. |
 | `propagation.png`          | Theorem 2 made visible: stacked $\log_2 \gcd$ contributions per prime, plus the empirical density of $\gcd(p - 1, q - 1)$. |
+| `gcd_distribution.png`     | Theorem C made visible: empirical vs Dirichlet-predicted divisibility rates, plus the $1365$ tie-back. |
 
-## 8. Honest scope
+## 10. Honest scope
 
-Both theorems are elementary three-line consequences of the standard
+Theorems 1 and 2 are elementary three-line consequences of the standard
 multiplicativity of $\varphi$ and $\lambda$. They are well known in
 substance to anyone fluent with these functions, and they would not pass
-peer review at a research journal as new mathematics.
+peer review at a research journal as new mathematics. Theorem C is a
+direct application of Dirichlet's theorem on primes in arithmetic
+progressions and is similarly well known in substance; the contribution
+of this note is to state it in the same vocabulary as Theorems 1 and 2
+and to verify it empirically against the same examples.
 
-What this note offers is a clean *framing*: a named theorem that organizes
+What this note offers is a clean *framing*: named theorems that organize
 the wedge envelopes, the collapse bands, the synchronization model, and
 the element-order distributions into one multiplicative law. The repository
-treats the theorem as a teaching artifact and structural spine, not as a
-research result. Speculative connections to the Riemann Hypothesis or to
-Hilbert-Polya are deferred and explicitly out of scope here.
+treats these results as teaching artifacts and a structural spine, not as
+research. Scope is exactly what is stated and proved here.
 
 The value, in one sentence: collapse propagates multiplicatively, and the
 multiplier is a gcd you can see in the picture.
