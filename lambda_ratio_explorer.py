@@ -220,6 +220,81 @@ def element_orders(n: int) -> dict[int, int]:
     return orders
 
 
+def collapse_step(k: int, p: int) -> dict:
+    """One step of the collapse propagation theorem.
+
+    For prime p with p not dividing k, the multiplicative collapse index
+    satisfies the identity
+
+        C(k * p) = C(k) * gcd(lambda(k), p - 1)
+
+    Returns a dict with all quantities relevant to the step:
+        k, p, phi_k, lambda_k, C_k,
+        gcd_term, kp, phi_kp, lambda_kp, C_kp.
+
+    Raises ValueError if p is not prime, if p divides k, or if k < 1.
+    The identity is asserted at runtime so this function doubles as a test.
+    """
+    if k < 1:
+        raise ValueError("k must be >= 1")
+    if not is_prime(p):
+        raise ValueError(f"p={p} is not prime")
+    if k % p == 0:
+        raise ValueError(f"p={p} divides k={k}; theorem requires gcd(k, p) = 1")
+
+    phi_k = euler_totient(k)
+    lambda_k = carmichael_lambda(k)
+    C_k = phi_k // lambda_k
+
+    gcd_term = gcd(lambda_k, p - 1)
+    kp = k * p
+    phi_kp = euler_totient(kp)
+    lambda_kp = carmichael_lambda(kp)
+    C_kp = phi_kp // lambda_kp
+
+    predicted = C_k * gcd_term
+    assert C_kp == predicted, (
+        f"propagation identity violated: C({kp}) = {C_kp} but "
+        f"C({k}) * gcd(lambda({k}), {p}-1) = {C_k} * {gcd_term} = {predicted}"
+    )
+
+    return {
+        "k": k,
+        "p": p,
+        "phi_k": phi_k,
+        "lambda_k": lambda_k,
+        "C_k": C_k,
+        "gcd_term": gcd_term,
+        "kp": kp,
+        "phi_kp": phi_kp,
+        "lambda_kp": lambda_kp,
+        "C_kp": C_kp,
+    }
+
+
+def collapse_propagation_trace(primes: list[int]) -> list[dict]:
+    """Iterate collapse_step starting at k = 1 across the given primes in order.
+
+    Returns the full trace as a list of step dicts. Each successive step uses
+    the previous step's k*p as the new k. The primes must be distinct and the
+    order matters only in that earlier values appear in lambda_k of later
+    steps; the final C is independent of order.
+    """
+    if not primes:
+        return []
+    seen: set[int] = set()
+    trace: list[dict] = []
+    k = 1
+    for p in primes:
+        if p in seen:
+            raise ValueError(f"duplicate prime {p} in propagation trace")
+        seen.add(p)
+        step = collapse_step(k, p)
+        trace.append(step)
+        k = step["kp"]
+    return trace
+
+
 def is_carmichael(n: int) -> bool:
     """Korselt's criterion: n is a Carmichael number iff n is composite,
     squarefree, and (p - 1) divides (n - 1) for every prime p dividing n.

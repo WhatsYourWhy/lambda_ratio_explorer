@@ -29,6 +29,17 @@ C(p*q) = gcd(p - 1, q - 1)
 This is precisely the quantity that controls cycle overlap in `(Z/nZ)*` and
 is the cryptographic-strength dial in RSA-style moduli.
 
+The core multiplicative law that organizes the rest of the repo is the
+**collapse propagation theorem**:
+
+```text
+C(k * p) = C(k) * gcd(lambda(k), p - 1)        for prime p with p not dividing k
+```
+
+For derivations, worked examples, and a connection to every figure here,
+see [`THEOREM.md`](./THEOREM.md). A renderable PDF can be produced via
+`render_theorem.ps1` (requires pandoc plus a LaTeX engine).
+
 ## Install
 
 ```bash
@@ -90,6 +101,28 @@ python wedge_envelopes.py
 # -> wedge_envelopes.png
 ```
 
+### Collapse propagation (`propagation.py`)
+
+Iterative demonstration of the propagation theorem. Builds three example
+numbers one prime at a time, prints the step-by-step trace, and produces
+a 2-panel figure: stacked `log2 gcd` contributions on the left, and the
+empirical density of `gcd(p-1, q-1)` over odd prime pairs on the right.
+
+```bash
+python propagation.py
+# -> propagation.png
+```
+
+### PDF of the theorem note (`render_theorem.ps1`)
+
+```powershell
+./render_theorem.ps1
+# -> theorem.pdf
+```
+
+Requires pandoc plus a LaTeX engine (MiKTeX or TeX Live). See the script
+header for fallback options if no LaTeX engine is available.
+
 ## What the data shows
 
 Running `group_structure.py` over `q in [2, 2000]`:
@@ -123,26 +156,35 @@ share little.
 ## Library functions of note
 
 ```text
-phi(n)                Euler totient
-lambda(n)             Carmichael lambda (group exponent)
-collapse_index(n)     C(n) = phi/lambda
-invariant_factors(n)  list d_1 | d_2 | ... | d_k describing (Z/nZ)*
-fracture_count(n)     k = number of cyclic components
-element_orders(n)     dict mapping each unit to its order
-is_carmichael(n)      Korselt's criterion
-divisors(n)           sorted divisors of n
+phi(n)                          Euler totient
+lambda(n)                       Carmichael lambda (group exponent)
+collapse_index(n)               C(n) = phi/lambda
+collapse_step(k, p)             one step of C(k*p) = C(k) * gcd(lambda(k), p-1)
+collapse_propagation_trace(ps)  iterate the step over a list of primes
+invariant_factors(n)            list d_1 | d_2 | ... | d_k describing (Z/nZ)*
+fracture_count(n)               k = number of cyclic components
+element_orders(n)               dict mapping each unit to its order
+is_carmichael(n)                Korselt's criterion
+divisors(n)                     sorted divisors of n
 ```
+
+`collapse_step` and `collapse_propagation_trace` assert the propagation
+identity at runtime, so they double as tests for the theorem in
+[`THEOREM.md`](./THEOREM.md).
 
 ## Files
 
-| File                       | Purpose                                           |
-| -------------------------- | ------------------------------------------------- |
-| `lambda_ratio_explorer.py` | Core library + CLI scanner                        |
-| `group_structure.py`       | 4-panel structural analysis of `C(n)`             |
-| `order_distributions.py`   | Element-order histograms inside chosen `n`        |
-| `wedge_envelopes.py`       | Algebraic envelope visualization                  |
-| `requirements.txt`         | `matplotlib` (pulls in numpy)                     |
-| `lambda_ratio_scan_*.csv`  | Sample CSV outputs from earlier scanner runs      |
+| File                       | Purpose                                                 |
+| -------------------------- | ------------------------------------------------------- |
+| `lambda_ratio_explorer.py` | Core library + CLI scanner                              |
+| `group_structure.py`       | 4-panel structural analysis of `C(n)`                   |
+| `order_distributions.py`   | Element-order histograms inside chosen `n`              |
+| `wedge_envelopes.py`       | Algebraic envelope visualization                        |
+| `propagation.py`           | Iterative demo of the collapse propagation theorem      |
+| `THEOREM.md`               | Wedge + collapse propagation identities, with proofs    |
+| `render_theorem.ps1`       | Pandoc helper that renders `THEOREM.md` to `theorem.pdf`|
+| `requirements.txt`         | `matplotlib` (pulls in numpy)                           |
+| `lambda_ratio_scan_*.csv`  | Sample CSV outputs from earlier scanner runs            |
 
 ## Notes
 
