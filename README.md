@@ -1,5 +1,11 @@
 # lambda_ratio_explorer
 
+> Factorization splits the multiplicative group into independent cyclic
+> components. φ(n) counts the total elements; λ(n) is the maximum order of
+> any element. Their ratio measures how badly those components fail to
+> synchronize into a single cycle, and that obstruction is governed by the
+> gcd of the component cycle lengths.
+
 A small numerical and visual explorer for the multiplicative group `(Z/nZ)*`.
 The central object is the **collapse index**
 
@@ -9,10 +15,10 @@ C(n) = phi(n) / lambda(n)
 
 where `phi` is Euler's totient and `lambda` is the Carmichael function.
 
-`C(n)` counts how many cyclic factors the multiplicative group decomposes
-into beyond its largest one. It is exactly **1** when the group is cyclic
-(every prime, every odd prime power, plus a handful of small special cases)
-and grows with structural collapse.
+`C(n)` is the size of the obstruction to `(Z/nZ)*` being a single cycle.
+It is exactly **1** when the group is cyclic (every prime, every odd prime
+power, plus a few small special cases) and grows as the group fractures
+into more parallel components with shared cycle lengths.
 
 For semiprimes `n = p*q` it has a clean closed form:
 
@@ -47,14 +53,29 @@ python lambda_ratio_explorer.py --q-max 200 --n 1000 \
 
 ### Group-structure analysis (`group_structure.py`)
 
-The teaching centerpiece. Generates a 4-panel figure showing collapse
-behavior across q, the prime-pair heatmap of `gcd(p-1, q-1)`, the
-distribution of `C` by structural kind, and a side-by-side comparison
-of two collapse measures.
+A 4-panel figure showing collapse behavior across q, the prime-pair
+heatmap of `gcd(p-1, q-1)`, the distribution of `C` by structural kind,
+and a side-by-side comparison of two collapse measures. Carmichael
+numbers in the range are highlighted as gold stars.
 
 ```bash
 python group_structure.py
 # -> group_structure.png
+```
+
+### Order distributions (`order_distributions.py`)
+
+The synchronization model made visible at the level of individual
+elements. For four chosen `n` values (a prime, a small fractured
+composite, a Carmichael number, and the most-collapsed value in our
+scan range) it computes the multiplicative order of every unit and
+plots the histogram. The orange bar marks `lambda(n)`, the longest
+stride; the height distribution exposes the parallel-cycle structure
+predicted by the invariant factor decomposition.
+
+```bash
+python order_distributions.py
+# -> order_distributions.png
 ```
 
 ### Wedge envelopes (`wedge_envelopes.py`)
@@ -99,12 +120,26 @@ The heatmap panel of `group_structure.png` is exactly this map: bright
 cells are prime pairs to avoid, dark cells are pairs whose totients
 share little.
 
+## Library functions of note
+
+```text
+phi(n)                Euler totient
+lambda(n)             Carmichael lambda (group exponent)
+collapse_index(n)     C(n) = phi/lambda
+invariant_factors(n)  list d_1 | d_2 | ... | d_k describing (Z/nZ)*
+fracture_count(n)     k = number of cyclic components
+element_orders(n)     dict mapping each unit to its order
+is_carmichael(n)      Korselt's criterion
+divisors(n)           sorted divisors of n
+```
+
 ## Files
 
 | File                       | Purpose                                           |
 | -------------------------- | ------------------------------------------------- |
 | `lambda_ratio_explorer.py` | Core library + CLI scanner                        |
-| `group_structure.py`       | Centerpiece 4-panel analysis of `C(n)`            |
+| `group_structure.py`       | 4-panel structural analysis of `C(n)`             |
+| `order_distributions.py`   | Element-order histograms inside chosen `n`        |
 | `wedge_envelopes.py`       | Algebraic envelope visualization                  |
 | `requirements.txt`         | `matplotlib` (pulls in numpy)                     |
 | `lambda_ratio_scan_*.csv`  | Sample CSV outputs from earlier scanner runs      |

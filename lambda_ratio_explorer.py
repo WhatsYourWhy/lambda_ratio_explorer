@@ -116,6 +116,128 @@ def collapse_index(n: int) -> int:
     return euler_totient(n) // carmichael_lambda(n)
 
 
+def divisors(n: int) -> list[int]:
+    """Sorted list of all positive divisors of n."""
+    if n < 1:
+        raise ValueError("n must be positive")
+    if n == 1:
+        return [1]
+    result = [1]
+    for p, e in factorize(n).items():
+        new_divs: list[int] = []
+        power = 1
+        for _ in range(e + 1):
+            for d in result:
+                new_divs.append(d * power)
+            power *= p
+        result = new_divs
+    return sorted(result)
+
+
+def _cyclic_factors_of_unit_group_at_prime_power(p: int, k: int) -> list[int]:
+    """Cyclic factor orders of (Z/p^k Z)*.
+
+    For odd p, (Z/p^k Z)* is cyclic of order phi(p^k).
+    For p = 2: trivial at k=1, cyclic of order 2 at k=2,
+               and Z/2 x Z/2^(k-2) for k >= 3.
+    """
+    if p == 2:
+        if k == 1:
+            return []
+        if k == 2:
+            return [2]
+        return [2, 2 ** (k - 2)]
+    return [(p - 1) * p ** (k - 1)]
+
+
+def invariant_factors(n: int) -> list[int]:
+    """Invariant factor decomposition of (Z/nZ)*.
+
+    Returns d_1 | d_2 | ... | d_k with d_1 <= ... <= d_k = lambda(n) and
+    d_1 * d_2 * ... * d_k = phi(n). The length k is the fracture count:
+    the number of cyclic components in the decomposition.
+    """
+    if n < 1:
+        raise ValueError("n must be positive")
+    if n <= 2:
+        return [1]
+
+    cyclic_orders: list[int] = []
+    for p, k in factorize(n).items():
+        cyclic_orders.extend(_cyclic_factors_of_unit_group_at_prime_power(p, k))
+    if not cyclic_orders:
+        return [1]
+
+    prime_to_vals: dict[int, list[int]] = {}
+    for order in cyclic_orders:
+        for q, e in factorize(order).items():
+            prime_to_vals.setdefault(q, []).append(e)
+
+    if not prime_to_vals:
+        return [1]
+
+    k_max = max(len(v) for v in prime_to_vals.values())
+    for q in prime_to_vals:
+        prime_to_vals[q].sort(reverse=True)
+        while len(prime_to_vals[q]) < k_max:
+            prime_to_vals[q].append(0)
+
+    factors: list[int] = []
+    for j in range(k_max):
+        d = 1
+        for q, vals in prime_to_vals.items():
+            d *= q ** vals[j]
+        if d > 1:
+            factors.append(d)
+
+    factors.sort()
+    return factors if factors else [1]
+
+
+def fracture_count(n: int) -> int:
+    """Number of cyclic components in the invariant factor decomposition."""
+    return len(invariant_factors(n))
+
+
+def element_orders(n: int) -> dict[int, int]:
+    """Map each unit a in (Z/nZ)* to its multiplicative order.
+
+    Computed by testing divisors of lambda(n) in ascending order, since
+    every element order divides lambda(n).
+    """
+    if n < 2:
+        raise ValueError("n must be >= 2")
+    lam = carmichael_lambda(n)
+    divs = divisors(lam)
+    orders: dict[int, int] = {}
+    for a in range(1, n):
+        if gcd(a, n) != 1:
+            continue
+        for d in divs:
+            if pow(a, d, n) == 1:
+                orders[a] = d
+                break
+    return orders
+
+
+def is_carmichael(n: int) -> bool:
+    """Korselt's criterion: n is a Carmichael number iff n is composite,
+    squarefree, and (p - 1) divides (n - 1) for every prime p dividing n.
+
+    Carmichael numbers are exactly the composites with lambda(n) | (n - 1),
+    so they pass the Fermat primality test for every coprime base. The
+    smallest is 561 = 3 * 11 * 17.
+    """
+    if n < 561 or is_prime(n):
+        return False
+    factors = factorize(n)
+    if len(factors) < 3:
+        return False
+    if any(e > 1 for e in factors.values()):
+        return False
+    return all((n - 1) % (p - 1) == 0 for p in factors)
+
+
 def is_prime(n: int) -> bool:
     if n < 2:
         return False

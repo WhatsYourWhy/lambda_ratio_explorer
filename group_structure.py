@@ -32,6 +32,7 @@ from lambda_ratio_explorer import (
     collapse_index,
     euler_totient,
     factorize,
+    is_carmichael,
     is_prime,
     kind,
 )
@@ -75,6 +76,13 @@ def panel_collapse_scan(ax: plt.Axes, q_max: int) -> None:
     for k in ("composite", "prime_power", "prime"):
         xs, ys = by_kind[k]
         ax.scatter(xs, ys, label=k, **style[k])
+
+    carmichaels = [(q, c) for q, c in zip(qs, cs) if is_carmichael(q)]
+    if carmichaels:
+        cx, cy = zip(*carmichaels)
+        ax.scatter(cx, cy, s=70, marker="*", color="#fab005",
+                   edgecolor="black", linewidth=0.6, zorder=5,
+                   label=f"Carmichael number ({len(carmichaels)} found)")
 
     ax.set_yscale("symlog", linthresh=1)
     ax.set_xlabel("q")
