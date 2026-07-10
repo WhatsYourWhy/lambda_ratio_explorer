@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import csv
 import math
+import random
 from dataclasses import dataclass
 from functools import reduce
 from math import gcd, lcm
@@ -57,21 +58,54 @@ def carmichael_lambda_bruteforce(n: int) -> int:
     raise RuntimeError(f"bruteforce search failed for n={n}")
 
 
+# Factors below this bound are stripped by trial division; anything left
+# is handled by Miller-Rabin + Pollard rho.
+_TRIAL_DIVISION_LIMIT = 10_000
+
+
+def _pollard_rho(n: int) -> int:
+    """Return a nontrivial factor of odd composite n (Floyd cycle detection)."""
+    while True:
+        c = random.randrange(1, n)
+        x = y = random.randrange(2, n)
+        d = 1
+        while d == 1:
+            x = (x * x + c) % n
+            y = (y * y + c) % n
+            y = (y * y + c) % n
+            d = gcd(abs(x - y), n)
+        if d != n:
+            return d
+
+
+def _factor_hard(n: int) -> list[int]:
+    """Prime factors (with multiplicity) of n, which has no factor below
+    _TRIAL_DIVISION_LIMIT."""
+    if n == 1:
+        return []
+    if is_prime(n):
+        return [n]
+    d = _pollard_rho(n)
+    return _factor_hard(d) + _factor_hard(n // d)
+
+
 def factorize(n: int) -> dict[int, int]:
-    """Trial-division factorization, good enough for toy scans up to moderate q."""
+    """Prime factorization: trial division for small factors, then
+    Pollard rho for the remaining cofactor. Practical well beyond the
+    old pure-trial-division limit (e.g. 18-digit semiprimes)."""
     if n < 1:
         raise ValueError("n must be positive")
 
     factors: dict[int, int] = {}
     d = 2
-    while d * d <= n:
+    while d * d <= n and d <= _TRIAL_DIVISION_LIMIT:
         while n % d == 0:
             factors[d] = factors.get(d, 0) + 1
             n //= d
         d += 1 if d == 2 else 2  # 2, then odd candidates only
-    if n > 1:
-        factors[n] = factors.get(n, 0) + 1
-    return factors
+    for p in _factor_hard(n):
+        factors[p] = factors.get(p, 0) + 1
+    return dict(sorted(factors.items()))
 
 
 def carmichael_prime_power(p: int, k: int) -> int:
@@ -313,18 +347,32 @@ def is_carmichael(n: int) -> bool:
     return all((n - 1) % (p - 1) == 0 for p in factors)
 
 
+# Deterministic Miller-Rabin witness set: correct for all n < 3.3 * 10^24.
+_MILLER_RABIN_WITNESSES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
+
+
 def is_prime(n: int) -> bool:
+    """Deterministic Miller-Rabin, exact for all n < 3.3 * 10^24."""
     if n < 2:
         return False
-    if n == 2:
-        return True
-    if n % 2 == 0:
-        return False
-    d = 3
-    while d * d <= n:
-        if n % d == 0:
+    for p in _MILLER_RABIN_WITNESSES:
+        if n % p == 0:
+            return n == p
+    d = n - 1
+    r = 0
+    while d % 2 == 0:
+        d //= 2
+        r += 1
+    for a in _MILLER_RABIN_WITNESSES:
+        x = pow(a, d, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r - 1):
+            x = x * x % n
+            if x == n - 1:
+                break
+        else:
             return False
-        d += 2
     return True
 
 
