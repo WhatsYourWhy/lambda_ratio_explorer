@@ -15,7 +15,8 @@ This script:
      Pr( l | gcd(p - 1, q - 1) ) over all distinct odd prime pairs and
      compares to the Dirichlet prediction 1/(l-1)^2.
   3. Computes empirical E[gcd(p - 1, q - 1)] and the truncated heuristic
-     constant sum_{d <= D} 1/phi(d)^2 (the predicted limit).
+     sum_{d <= D} 1/phi(d), which grows like A log D with
+     A = 315 zeta(3) / (2 pi^4).
   4. Renders a two-panel figure gcd_distribution.png:
        - left:  empirical vs predicted Pr(l | gcd) on a log y-axis
        - right: the 1365 = 3*5*7*13 tie-back, showing how its propagation
