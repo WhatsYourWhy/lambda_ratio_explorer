@@ -65,6 +65,9 @@ class TestIsPrime:
         assert not is_prime(1000000007 * 1000000009)
         # strong pseudoprime to base 2, composite
         assert not is_prime(3215031751)
+        # psi_12: smallest strong pseudoprime to all 12 prime bases <= 37;
+        # base 41 in the witness set must catch it
+        assert not is_prime(318665857834031151167461)
 
 
 class TestFactorizeLarge:

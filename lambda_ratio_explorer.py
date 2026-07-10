@@ -347,8 +347,10 @@ def is_carmichael(n: int) -> bool:
     return all((n - 1) % (p - 1) == 0 for p in factors)
 
 
-# Deterministic Miller-Rabin witness set: correct for all n < 3.3 * 10^24.
-_MILLER_RABIN_WITNESSES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)
+# Deterministic Miller-Rabin witness set: the first 13 primes are exact
+# for all n < 3,317,044,064,679,887,385,961,981 ~ 3.3 * 10^24
+# (Sorenson & Webster 2015).
+_MILLER_RABIN_WITNESSES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
 
 
 def is_prime(n: int) -> bool:
