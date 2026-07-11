@@ -121,14 +121,32 @@ python propagation.py
 ### Distribution of `gcd(p-1, q-1)` (`gcd_distribution_theory.py`)
 
 Empirical verification of Theorem C. Computes the divisibility rate
-`Pr(l | gcd(p-1, q-1))` over all distinct odd-prime pairs up to a
-configurable cutoff and compares it to the Dirichlet prediction
-`1/(l-1)^2`. Also prints the empirical mean gcd alongside the
-asymptotic estimate `A log X` with `A = 315 zeta(3) / (2 pi^4) ~ 1.94`.
+`Pr(l | gcd(p-1, q-1))` over distinct odd-prime pairs up to a
+configurable cutoff (`10^5` by default, switching to a fixed-seed
+random sample of 2M pairs above the exhaustive threshold) and compares
+it to the Dirichlet prediction `1/(l-1)^2`. At the `10^5` cutoff the
+relative errors are around a percent. Also prints the empirical mean
+gcd alongside the asymptotic estimate `A log X` with
+`A = 315 zeta(3) / (2 pi^4) ~ 1.94`.
 
 ```bash
 python gcd_distribution_theory.py
 # -> gcd_distribution.png
+```
+
+### Collapse at scale (`collapse_at_scale.py`)
+
+The full-range scan of `C(n)` to `n = 10^6`, using a smallest-prime-factor
+sieve (one pass factors every n at once, so the scan takes seconds).
+Produces a 2-panel figure: the density of `(n, C)` over all composites
+with the running-maximum "collapse records" overlaid and labeled, and a
+quantile fan (median / 90th / 99th / max of `C` by geometric window)
+showing that collapse is a tail phenomenon. Prints the by-kind summary
+table and the top records with factorizations.
+
+```bash
+python collapse_at_scale.py
+# -> collapse_at_scale.png
 ```
 
 ### PDF of the theorem note (`render_theorem.ps1`)
@@ -158,6 +176,21 @@ products of small primes whose `(p_i - 1)` shares many common factors
 
 The Hardy-Ramanujan number `1729 = 7 * 13 * 19` shows up near the top:
 it is also a Carmichael number, and large `C` is part of why.
+
+Scaling up with `collapse_at_scale.py` over `n in [2, 10^6]`:
+
+| kind         | count  | mean C | median C | max C | fraction with C=1 |
+| ------------ | ------ | ------ | -------- | ----- | ----------------- |
+| prime        | 78498  | 1.00   | 1        | 1     | 1.000             |
+| prime_power  | 236    | 1.07   | 1        | 2     | 0.928             |
+| composite    | 921265 | 36.22  | 8        | 10368 | 0.045             |
+
+The record holder below `10^6` is `959595 = 3 * 5 * 7 * 13 * 19 * 37`
+with `C = 10368` -- the same story as `1365`, two primes deeper: the
+totients `2, 4, 6, 12, 18, 36` all divide each other's lattice. The
+median composite has `C = 8` while the maximum is `10368`, i.e. the
+mean is dragged by a thin tail of heavily-shared-structure numbers;
+the quantile fan in `collapse_at_scale.png` makes this visible.
 
 ## Cryptographic interpretation
 
@@ -200,6 +233,7 @@ identity at runtime, so they double as tests for the theorem in
 | `wedge_envelopes.py`       | Algebraic envelope visualization                        |
 | `propagation.py`           | Iterative demo of the collapse propagation theorem      |
 | `gcd_distribution_theory.py` | Empirical verification of Theorem C                   |
+| `collapse_at_scale.py`     | Sieve-based scan of `C(n)` to `10^6`, records + quantiles |
 | `THEOREM.md`               | Wedge, propagation, and Dirichlet-density identities    |
 | `render_theorem.ps1`       | Pandoc helper that renders `THEOREM.md` to `theorem.pdf`|
 | `requirements.txt`         | `matplotlib` (pulls in numpy)                           |

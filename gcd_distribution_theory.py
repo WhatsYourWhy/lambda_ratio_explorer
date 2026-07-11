@@ -12,8 +12,10 @@ and any prime l,
 This script:
   1. Sieves odd primes up to a configurable limit.
   2. For l in {2, 3, 5, 7, 11, 13, 17, 19, 23} computes empirical
-     Pr( l | gcd(p - 1, q - 1) ) over all distinct odd prime pairs and
-     compares to the Dirichlet prediction 1/(l-1)^2.
+     Pr( l | gcd(p - 1, q - 1) ) over distinct odd prime pairs and
+     compares to the Dirichlet prediction 1/(l-1)^2. Below a size
+     threshold all pairs are enumerated; above it a fixed-seed random
+     sample of pairs is used so the cutoff can be pushed to 10^5.
   3. Computes empirical E[gcd(p - 1, q - 1)] and the truncated heuristic
      sum_{d <= D} 1/phi(d), which grows like A log D with
      A = 315 zeta(3) / (2 pi^4).
@@ -30,6 +32,7 @@ at a glance.
 from __future__ import annotations
 
 import math
+import random
 from typing import Iterable
 
 import matplotlib.pyplot as plt
@@ -41,8 +44,14 @@ from lambda_ratio_explorer import (
 )
 
 
-PRIME_LIMIT = 2000
+PRIME_LIMIT = 100_000
 TARGET_PRIMES: list[int] = [2, 3, 5, 7, 11, 13, 17, 19, 23]
+
+# Above this many pairs, sample instead of enumerating. The seed is fixed
+# so the table and figure are reproducible run to run.
+MAX_EXHAUSTIVE_PAIRS = 2_000_000
+SAMPLE_PAIRS = 2_000_000
+SAMPLE_SEED = 20260711
 
 # Mean-totient-reciprocal constant A = 315 zeta(3) / (2 pi^4),
 # governing the asymptotic sum_{d <= X} 1/phi(d) ~ A log X.
@@ -61,21 +70,37 @@ def primes_up_to(limit: int) -> list[int]:
     return [i for i, b in enumerate(sieve) if b]
 
 
+def _pair_stream(primes: list[int]) -> Iterable[tuple[int, int]]:
+    """Distinct prime pairs: exhaustive when small, sampled when large."""
+    n = len(primes)
+    if n * (n - 1) // 2 <= MAX_EXHAUSTIVE_PAIRS:
+        for i, p in enumerate(primes):
+            for q in primes[i + 1:]:
+                yield p, q
+        return
+    rng = random.Random(SAMPLE_SEED)
+    for _ in range(SAMPLE_PAIRS):
+        i = rng.randrange(n)
+        j = rng.randrange(n - 1)
+        if j >= i:
+            j += 1
+        yield primes[i], primes[j]
+
+
 def empirical_divisibility_rates(
     primes: list[int], target_ells: Iterable[int]
 ) -> tuple[dict[int, float], int, float]:
-    """Return (empirical Pr(l | gcd) per l, total pair count, empirical mean gcd)."""
+    """Return (empirical Pr(l | gcd) per l, pair count used, empirical mean gcd)."""
     counts = {l: 0 for l in target_ells}
     pair_total = 0
     gcd_sum = 0
-    for i, p in enumerate(primes):
-        for q in primes[i + 1:]:
-            g = math.gcd(p - 1, q - 1)
-            pair_total += 1
-            gcd_sum += g
-            for l in counts:
-                if g % l == 0:
-                    counts[l] += 1
+    for p, q in _pair_stream(primes):
+        g = math.gcd(p - 1, q - 1)
+        pair_total += 1
+        gcd_sum += g
+        for l in counts:
+            if g % l == 0:
+                counts[l] += 1
     rates = {l: counts[l] / pair_total for l in counts}
     mean_gcd = gcd_sum / pair_total
     return rates, pair_total, mean_gcd

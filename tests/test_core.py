@@ -206,6 +206,18 @@ class TestIsCarmichael:
         assert is_carmichael(n) == expected
 
 
+class TestCollapseAtScaleScan:
+    def test_sieve_scan_matches_library(self):
+        pytest.importorskip("matplotlib")
+        from collapse_at_scale import scan
+
+        C, kind_code = scan(2000)
+        kind_names = {1: "prime", 2: "prime_power", 3: "composite"}
+        for n in range(2, 2001):
+            assert C[n] == collapse_index(n)
+            assert kind_names[kind_code[n]] == kind(n)
+
+
 class TestKind:
     def test_classification(self):
         assert kind(7) == "prime"
