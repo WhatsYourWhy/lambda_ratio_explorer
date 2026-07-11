@@ -287,6 +287,7 @@ multiplicative law shown at three scales:
 | `order_distributions.png`  | The parallel-cycle picture inside specific $n$, with explicit invariant factors. |
 | `propagation.png`          | Theorem 2 made visible: stacked $\log_2 \gcd$ contributions per prime, plus the empirical density of $\gcd(p - 1, q - 1)$. |
 | `gcd_distribution.png`     | Theorem C made visible: empirical vs Dirichlet-predicted divisibility rates, plus the $1365$ tie-back. |
+| `collapse_at_scale.png`    | The whole story to $n = 10^6$: collapse records (the $1365$-style extremes, deeper) and the quantile fan showing collapse is a tail phenomenon. |
 
 ## 10. Honest scope
 
