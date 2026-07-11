@@ -1,5 +1,8 @@
 # lambda_ratio_explorer
 
+[![CI](https://github.com/WhatsYourWhy/lambda_ratio_explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/WhatsYourWhy/lambda_ratio_explorer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 > Factorization splits the multiplicative group into independent cyclic
 > components. φ(n) counts the total elements; λ(n) is the maximum order of
 > any element. Their ratio measures how badly those components fail to
@@ -45,6 +48,8 @@ For derivations, worked examples, and a connection to every figure here,
 see [`THEOREM.md`](./THEOREM.md). A renderable PDF can be produced via
 `render_theorem.ps1` (requires pandoc plus a LaTeX engine).
 
+![Collapse index C(n) at scale](./collapse_at_scale.png)
+
 ## Install
 
 ```bash
@@ -79,6 +84,8 @@ python group_structure.py
 # -> group_structure.png
 ```
 
+![Group structure analysis](./group_structure.png)
+
 ### Order distributions (`order_distributions.py`)
 
 The synchronization model made visible at the level of individual
@@ -94,6 +101,8 @@ python order_distributions.py
 # -> order_distributions.png
 ```
 
+![Element order distributions](./order_distributions.png)
+
 ### Wedge envelopes (`wedge_envelopes.py`)
 
 A focused plot showing that the upper edges of the `lambda(q)` wedge
@@ -106,6 +115,8 @@ python wedge_envelopes.py
 # -> wedge_envelopes.png
 ```
 
+![Wedge envelopes](./wedge_envelopes.png)
+
 ### Collapse propagation (`propagation.py`)
 
 Iterative demonstration of the propagation theorem. Builds three example
@@ -117,6 +128,8 @@ empirical density of `gcd(p-1, q-1)` over odd prime pairs on the right.
 python propagation.py
 # -> propagation.png
 ```
+
+![Collapse propagation](./propagation.png)
 
 ### Distribution of `gcd(p-1, q-1)` (`gcd_distribution_theory.py`)
 
@@ -133,6 +146,8 @@ gcd alongside the asymptotic estimate `A log X` with
 python gcd_distribution_theory.py
 # -> gcd_distribution.png
 ```
+
+![Theorem C verification](./gcd_distribution.png)
 
 ### Collapse at scale (`collapse_at_scale.py`)
 
@@ -247,3 +262,7 @@ identity at runtime, so they double as tests for the theorem in
   for backward compatibility, but `log(n)` is just a constant scalar
   and does not enter the structural story. The interesting metrics are
   `lambda(q)`, `phi(q)`, and `C(q)`.
+
+## License
+
+[MIT](./LICENSE)
