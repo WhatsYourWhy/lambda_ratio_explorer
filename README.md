@@ -206,8 +206,9 @@ identity at runtime, so they double as tests for the theorem in
 
 ## Notes
 
-- Factorization is trial division. Practical up to `q` of order 10^5.
-  Replace with Pollard rho if you want to push further.
+- Factorization strips small factors by trial division, then switches to
+  Miller-Rabin primality testing plus Pollard rho. Comfortable with
+  18-digit semiprimes; primality is deterministic below `3.3 * 10^24`.
 - The legacy ratio `lambda(q) / log(n)` is retained in `Row` and the CLI
   for backward compatibility, but `log(n)` is just a constant scalar
   and does not enter the structural story. The interesting metrics are

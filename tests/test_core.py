@@ -47,6 +47,47 @@ class TestFactorize:
         assert product == n
 
 
+class TestIsPrime:
+    def test_matches_sieve_below_10000(self):
+        limit = 10000
+        sieve = [True] * (limit + 1)
+        sieve[0] = sieve[1] = False
+        for i in range(2, int(limit ** 0.5) + 1):
+            if sieve[i]:
+                for j in range(i * i, limit + 1, i):
+                    sieve[j] = False
+        for n in range(limit + 1):
+            assert is_prime(n) == sieve[n]
+
+    def test_large_primes_and_composites(self):
+        assert is_prime(2 ** 61 - 1)  # Mersenne prime
+        assert is_prime(1000000007)
+        assert not is_prime(1000000007 * 1000000009)
+        # strong pseudoprime to base 2, composite
+        assert not is_prime(3215031751)
+        # psi_12: smallest strong pseudoprime to all 12 prime bases <= 37;
+        # base 41 in the witness set must catch it
+        assert not is_prime(318665857834031151167461)
+
+
+class TestFactorizeLarge:
+    def test_fermat_number_f6(self):
+        # F6 = 2^64 + 1 = 274177 * 67280421310721, both prime
+        assert factorize(2 ** 64 + 1) == {274177: 1, 67280421310721: 1}
+
+    def test_18_digit_semiprime(self):
+        p, q = 1000000007, 1000000009
+        assert factorize(p * q) == {p: 1, q: 1}
+
+    def test_large_prime_power(self):
+        p = 1000003
+        assert factorize(p ** 3) == {p: 3}
+
+    def test_semiprime_collapse_identity_large(self):
+        p, q = 1000000007, 1000000009
+        assert collapse_index(p * q) == gcd(p - 1, q - 1)
+
+
 class TestCarmichaelLambda:
     @pytest.mark.parametrize("n", range(1, 151))
     def test_fast_matches_bruteforce(self, n):
